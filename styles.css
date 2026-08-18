@@ -223,6 +223,66 @@ body {
   display: flex;
   gap: 0.75rem;
   align-items: flex-start;
+  background: var(--section-bg, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--section-border, rgba(255, 255, 255, 0.08));
+  border-radius: 16px;
+  padding: 1.25rem;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.section-wrapper:hover {
+  background: var(--section-bg-hover, rgba(255, 255, 255, 0.06));
+  border-color: var(--section-border-hover, rgba(255, 255, 255, 0.12));
+}
+
+/* Section color themes */
+.section-wrapper[data-color="blue"] {
+  --section-bg: rgba(100, 149, 237, 0.08);
+  --section-border: rgba(100, 149, 237, 0.2);
+  --section-bg-hover: rgba(100, 149, 237, 0.12);
+  --section-border-hover: rgba(100, 149, 237, 0.3);
+  --section-accent: rgba(100, 149, 237, 0.6);
+}
+
+.section-wrapper[data-color="purple"] {
+  --section-bg: rgba(168, 130, 255, 0.08);
+  --section-border: rgba(168, 130, 255, 0.2);
+  --section-bg-hover: rgba(168, 130, 255, 0.12);
+  --section-border-hover: rgba(168, 130, 255, 0.3);
+  --section-accent: rgba(168, 130, 255, 0.6);
+}
+
+.section-wrapper[data-color="green"] {
+  --section-bg: rgba(80, 200, 150, 0.08);
+  --section-border: rgba(80, 200, 150, 0.2);
+  --section-bg-hover: rgba(80, 200, 150, 0.12);
+  --section-border-hover: rgba(80, 200, 150, 0.3);
+  --section-accent: rgba(80, 200, 150, 0.6);
+}
+
+.section-wrapper[data-color="orange"] {
+  --section-bg: rgba(255, 170, 80, 0.08);
+  --section-border: rgba(255, 170, 80, 0.2);
+  --section-bg-hover: rgba(255, 170, 80, 0.12);
+  --section-border-hover: rgba(255, 170, 80, 0.3);
+  --section-accent: rgba(255, 170, 80, 0.6);
+}
+
+.section-wrapper[data-color="pink"] {
+  --section-bg: rgba(255, 120, 170, 0.08);
+  --section-border: rgba(255, 120, 170, 0.2);
+  --section-bg-hover: rgba(255, 120, 170, 0.12);
+  --section-border-hover: rgba(255, 120, 170, 0.3);
+  --section-accent: rgba(255, 120, 170, 0.6);
+}
+
+.section-wrapper[data-color="cyan"] {
+  --section-bg: rgba(80, 210, 230, 0.08);
+  --section-border: rgba(80, 210, 230, 0.2);
+  --section-bg-hover: rgba(80, 210, 230, 0.12);
+  --section-border-hover: rgba(80, 210, 230, 0.3);
+  --section-accent: rgba(80, 210, 230, 0.6);
 }
 
 .section-drag-handle {
@@ -264,8 +324,8 @@ body {
 
 .section-title {
   font-size: 0.8rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  color: var(--section-accent, rgba(255, 255, 255, 0.5));
   text-transform: uppercase;
   letter-spacing: 2px;
 }
@@ -334,6 +394,19 @@ body {
   padding: 4px;
 }
 
+.app-card-favicon-fallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .app-card-name {
   font-size: 0.8rem;
   font-weight: 500;
@@ -344,10 +417,25 @@ body {
   max-width: 100%;
 }
 
-.app-card-delete {
+.app-card-actions {
   position: absolute;
   top: 6px;
   right: 8px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  z-index: 2;
+  transition: opacity 0.2s ease;
+}
+
+.app-card:hover .app-card-actions {
+  opacity: 1;
+}
+
+.app-card-edit,
+.app-card-delete {
+  position: static;
+  opacity: inherit;
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.2);
@@ -356,12 +444,11 @@ body {
   padding: 2px 5px;
   border-radius: 4px;
   transition: all 0.2s ease;
-  opacity: 0;
-  z-index: 2;
 }
 
-.app-card:hover .app-card-delete {
-  opacity: 1;
+.app-card-edit:hover {
+  color: #7eb8ff;
+  background: rgba(126, 184, 255, 0.1);
 }
 
 .app-card-delete:hover {
@@ -429,7 +516,7 @@ body {
 }
 
 .section-wrapper.drag-over {
-  border-top: 2px solid #6c63ff;
+  border-top: 2px solid var(--section-accent, #6c63ff);
 }
 
 .app-card.dragging {

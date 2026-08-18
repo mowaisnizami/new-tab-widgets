@@ -29,6 +29,8 @@
   let deleteSectionTargetId = null;
   let deleteAppTargetId = null;
   let addAppTargetSectionId = null;
+  let editAppTargetId = null;
+  let editAppTargetSectionId = null;
 
   // DOM references
   const els = {
@@ -205,20 +207,24 @@
   function getFaviconUrl(url) {
     try {
       const domain = new URL(url).hostname;
-      return `https://www.google.com/s2/favicons?url=${domain}&sz=32`;
+      return `https://icon.horse/icon/${domain}`;
     } catch {
       return '';
     }
   }
 
+  const SECTION_COLORS = ['blue', 'purple', 'green', 'orange', 'pink', 'cyan'];
+
   function renderSections() {
     const container = els.sectionsContainer;
     container.innerHTML = '';
 
-    config.sections.forEach(section => {
+    config.sections.forEach((section, index) => {
+      const color = SECTION_COLORS[index % SECTION_COLORS.length];
       const wrapper = document.createElement('div');
       wrapper.className = 'section-wrapper';
       wrapper.setAttribute('data-section-id', section.id);
+      wrapper.setAttribute('data-color', color);
       wrapper.setAttribute('draggable', 'false');
 
       const handle = document.createElement('div');
@@ -264,11 +270,17 @@
         card.setAttribute('draggable', 'true');
 
         const favicon = getFaviconUrl(app.url);
+        const fallbackInitial = app.name.charAt(0).toUpperCase();
         card.innerHTML = `
-          <button class="app-card-delete" data-delete-app="${app.id}" data-section-id="${section.id}" title="Remove">
-            <i class="bi bi-x-lg"></i>
-          </button>
-          ${favicon ? `<img class="app-card-favicon" src="${favicon}" alt="" onerror="this.style.display='none'">` : ''}
+          <div class="app-card-actions">
+            <button class="app-card-edit" data-edit-app="${app.id}" data-section-id="${section.id}" title="Edit">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="app-card-delete" data-delete-app="${app.id}" data-section-id="${section.id}" title="Remove">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+          ${favicon ? `<img class="app-card-favicon" src="${favicon}" alt="" onerror="this.outerHTML='<div class=\\'app-card-favicon-fallback\\'>${escapeHtml(fallbackInitial)}</div>'">` : `<div class="app-card-favicon-fallback">${escapeHtml(fallbackInitial)}</div>`}
           <span class="app-card-name">${escapeHtml(app.name)}</span>
         `;
 
@@ -336,8 +348,15 @@
       addBtn.innerHTML = '<i class="bi bi-plus-lg"></i><span>Add App</span>';
       addBtn.addEventListener('click', () => {
         addAppTargetSectionId = section.id;
+        editAppTargetId = null;
+        editAppTargetSectionId = null;
         els.appName.value = '';
         els.appUrl.value = '';
+
+        const modalTitle = document.querySelector('#addAppModal .modal-title');
+        const modalBtn = document.getElementById('saveAppBtn');
+        modalTitle.innerHTML = '<i class="bi bi-plus-square me-2"></i>Add Application';
+        modalBtn.textContent = 'Add App';
         addAppModal.show();
       });
       grid.appendChild(addBtn);
@@ -477,6 +496,31 @@
         return;
       }
 
+      const appEditBtn = e.target.closest('[data-edit-app]');
+      if (appEditBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const appId = appEditBtn.getAttribute('data-edit-app');
+        const sectionId = appEditBtn.getAttribute('data-section-id');
+        const section = config.sections.find(s => s.id === sectionId);
+        const app = section && section.apps.find(a => a.id === appId);
+        if (!app) return;
+
+        editAppTargetId = appId;
+        editAppTargetSectionId = sectionId;
+        addAppTargetSectionId = null;
+
+        els.appName.value = app.name;
+        els.appUrl.value = app.url;
+
+        const modalTitle = document.querySelector('#addAppModal .modal-title');
+        const modalBtn = document.getElementById('saveAppBtn');
+        modalTitle.innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Application';
+        modalBtn.textContent = 'Save Changes';
+        addAppModal.show();
+        return;
+      }
+
       const appDeleteBtn = e.target.closest('[data-delete-app]');
       if (appDeleteBtn) {
         e.preventDefault();
@@ -512,7 +556,7 @@
       deleteAppModal.hide();
     });
 
-    // ── Add App events ──
+    // ── Add / Edit App events ──
 
     els.saveAppBtn.addEventListener('click', () => {
       const name = els.appName.value.trim();
@@ -533,13 +577,29 @@
       // Ensure URL has protocol
       const finalUrl = url.match(/^https?:\/\//) ? url : 'https://' + url;
 
-      const section = config.sections.find(s => s.id === addAppTargetSectionId);
-      if (section) {
-        section.apps.push({ id: generateId(), name, url: finalUrl });
-        saveConfig();
-        renderSections();
+      if (editAppTargetId && editAppTargetSectionId) {
+        // Edit mode
+        const section = config.sections.find(s => s.id === editAppTargetSectionId);
+        if (section) {
+          const app = section.apps.find(a => a.id === editAppTargetId);
+          if (app) {
+            app.name = name;
+            app.url = finalUrl;
+          }
+        }
+        editAppTargetId = null;
+        editAppTargetSectionId = null;
+      } else if (addAppTargetSectionId) {
+        // Add mode
+        const section = config.sections.find(s => s.id === addAppTargetSectionId);
+        if (section) {
+          section.apps.push({ id: generateId(), name, url: finalUrl });
+        }
+        addAppTargetSectionId = null;
       }
-      addAppTargetSectionId = null;
+
+      saveConfig();
+      renderSections();
       addAppModal.hide();
     });
 
