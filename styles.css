@@ -1,0 +1,246 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+.container-fluid {
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* Settings Button */
+.settings-btn {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.settings-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: rotate(45deg);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.settings-btn i {
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.75);
+  transition: color 0.3s ease;
+}
+
+.settings-btn:hover i {
+  color: #ffffff;
+}
+
+/* Primary Clock */
+.primary-clock {
+  margin-bottom: 2rem;
+}
+
+.clock-time {
+  font-size: 6rem;
+  font-weight: 200;
+  letter-spacing: 4px;
+  line-height: 1.1;
+  background: linear-gradient(to right, #ffffff, #c8c8ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-date {
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 0.5rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Regional Clocks */
+.regional-clock-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.regional-clock-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.25rem 1.75rem;
+  min-width: 200px;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.regional-clock-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.regional-clock-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 0.35rem;
+}
+
+.regional-clock-time {
+  font-size: 1.8rem;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+}
+
+.regional-clock-date {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 0.25rem;
+}
+
+.regional-clock-delete {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.regional-clock-card:hover .regional-clock-delete {
+  opacity: 1;
+}
+
+.regional-clock-delete:hover {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+}
+
+/* Add Clock Button */
+.btn-add-clock {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.btn-add-clock:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Modal Styling */
+.bg-dark-modal {
+  background: #1a1a2e !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+}
+
+.modal-content {
+  border: none;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #6c63ff !important;
+  box-shadow: 0 0 0 0.2rem rgba(108, 99, 255, 0.25) !important;
+}
+
+.form-check-input:checked {
+  background-color: #6c63ff;
+  border-color: #6c63ff;
+}
+
+.form-switch .form-check-input {
+  width: 2.8em;
+  height: 1.4em;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .clock-time {
+    font-size: 3.5rem;
+  }
+
+  .regional-clock-card {
+    min-width: 160px;
+    padding: 1rem 1.25rem;
+  }
+
+  .regional-clock-time {
+    font-size: 1.4rem;
+  }
+
+  .settings-btn {
+    width: 40px;
+    height: 40px;
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .clock-time {
+    font-size: 2.5rem;
+  }
+
+  .container-fluid {
+    padding: 1rem;
+  }
+}

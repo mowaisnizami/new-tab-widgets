@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Tab Widgets - Time & Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container-fluid h-100">
+    <div class="row h-100 align-items-center justify-content-center">
+      <div class="col-lg-8 col-xl-6 text-center">
+
+        <!-- Settings Gear -->
+        <div class="settings-btn" id="settingsBtn" title="Settings">
+          <i class="bi bi-gear-fill"></i>
+        </div>
+
+        <!-- Primary Clock -->
+        <div id="primaryClock" class="primary-clock">
+          <div class="clock-time" id="primaryTime">00:00:00</div>
+          <div class="clock-date" id="primaryDate">Loading...</div>
+        </div>
+
+        <!-- Regional Clocks Container -->
+        <div id="regionalClocks" class="regional-clock-list"></div>
+
+        <!-- Add Clock Button -->
+        <button class="btn btn-add-clock mt-4" id="addClockBtn">
+          <i class="bi bi-plus-circle me-2"></i>Add Clock
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Clock Modal -->
+  <div class="modal fade" id="addClockModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark-modal">
+        <div class="modal-header border-bottom border-secondary">
+          <h5 class="modal-title text-white">
+            <i class="bi bi-clock me-2"></i>Add Regional Clock
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label text-white">Clock Label</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" id="clockLabel" placeholder="e.g. London, Tokyo">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-white">Timezone</label>
+            <select class="form-select bg-dark text-white border-secondary" id="clockTimezone">
+              <option value="">Select a timezone...</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer border-top border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveClockBtn">Add Clock</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal fade" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark-modal">
+        <div class="modal-header border-bottom border-secondary">
+          <h5 class="modal-title text-white">
+            <i class="bi bi-gear me-2"></i>Settings
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+
+          <!-- Time Format -->
+          <div class="mb-4">
+            <label class="form-label text-white fw-bold">Time Format</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="timeFormat" id="format24" value="24">
+                <label class="form-check-label text-white" for="format24">24-hour</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="timeFormat" id="format12" value="12">
+                <label class="form-check-label text-white" for="format12">12-hour (AM/PM)</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Show Seconds -->
+          <div class="mb-4">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="showSeconds" checked>
+              <label class="form-check-label text-white" for="showSeconds">Show Seconds</label>
+            </div>
+          </div>
+
+          <!-- Show Date -->
+          <div class="mb-4">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="showDate" checked>
+              <label class="form-check-label text-white" for="showDate">Show Date</label>
+            </div>
+          </div>
+
+          <hr class="border-secondary">
+
+          <!-- Export/Import -->
+          <div class="mb-3">
+            <label class="form-label text-white fw-bold">Backup & Restore</label>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-info flex-fill" id="exportBtn">
+                <i class="bi bi-download me-1"></i>Export Config
+              </button>
+              <button class="btn btn-outline-warning flex-fill" id="importBtn">
+                <i class="bi bi-upload me-1"></i>Import Config
+              </button>
+              <input type="file" id="importFile" accept=".json" class="d-none">
+            </div>
+          </div>
+
+          <!-- Reset -->
+          <div class="mt-3">
+            <button class="btn btn-outline-danger w-100" id="resetBtn">
+              <i class="bi bi-trash me-1"></i>Reset All Settings
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content bg-dark-modal">
+        <div class="modal-header border-bottom border-secondary">
+          <h5 class="modal-title text-white">Delete Clock?</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-white text-center">
+          <p>This clock will be removed permanently.</p>
+        </div>
+        <div class="modal-footer border-top border-secondary justify-content-center">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="newtab.js"></script>
+</body>
+</html>
