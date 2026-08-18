@@ -20,22 +20,33 @@
     timeFormat: '24',
     showSeconds: true,
     showDate: true,
-    regionalClocks: []
+    regionalClocks: [],
+    sections: []
   };
 
   let clockInterval = null;
   let deleteTargetId = null;
+  let deleteSectionTargetId = null;
+  let deleteAppTargetId = null;
+  let addAppTargetSectionId = null;
 
   // DOM references
   const els = {
     primaryTime: document.getElementById('primaryTime'),
     primaryDate: document.getElementById('primaryDate'),
     regionalContainer: document.getElementById('regionalClocks'),
+    sectionsContainer: document.getElementById('sectionsContainer'),
     settingsBtn: document.getElementById('settingsBtn'),
     addClockBtn: document.getElementById('addClockBtn'),
+    addSectionBtn: document.getElementById('addSectionBtn'),
     clockLabel: document.getElementById('clockLabel'),
     clockTimezone: document.getElementById('clockTimezone'),
     saveClockBtn: document.getElementById('saveClockBtn'),
+    sectionName: document.getElementById('sectionName'),
+    saveSectionBtn: document.getElementById('saveSectionBtn'),
+    appName: document.getElementById('appName'),
+    appUrl: document.getElementById('appUrl'),
+    saveAppBtn: document.getElementById('saveAppBtn'),
     format24: document.getElementById('format24'),
     format12: document.getElementById('format12'),
     showSeconds: document.getElementById('showSeconds'),
@@ -45,11 +56,17 @@
     importFile: document.getElementById('importFile'),
     resetBtn: document.getElementById('resetBtn'),
     confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
+    confirmDeleteSectionBtn: document.getElementById('confirmDeleteSectionBtn'),
+    confirmDeleteAppBtn: document.getElementById('confirmDeleteAppBtn'),
   };
 
   const addClockModal = new bootstrap.Modal(document.getElementById('addClockModal'));
   const settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
   const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+  const addSectionModal = new bootstrap.Modal(document.getElementById('addSectionModal'));
+  const addAppModal = new bootstrap.Modal(document.getElementById('addAppModal'));
+  const deleteSectionModal = new bootstrap.Modal(document.getElementById('deleteSectionModal'));
+  const deleteAppModal = new bootstrap.Modal(document.getElementById('deleteAppModal'));
 
   // ── Config persistence ──
 
@@ -179,6 +196,194 @@
     return div.innerHTML;
   }
 
+  // ── Sections & Apps ──
+
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function getFaviconUrl(url) {
+    try {
+      const domain = new URL(url).hostname;
+      return `https://www.google.com/s2/favicons?url=${domain}&sz=32`;
+    } catch {
+      return '';
+    }
+  }
+
+  function renderSections() {
+    const container = els.sectionsContainer;
+    container.innerHTML = '';
+
+    config.sections.forEach(section => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'section-wrapper';
+      wrapper.setAttribute('data-section-id', section.id);
+      wrapper.setAttribute('draggable', 'false');
+
+      const handle = document.createElement('div');
+      handle.className = 'section-drag-handle';
+      handle.innerHTML = '<i class="bi bi-grip-vertical"></i>';
+      handle.setAttribute('draggable', 'true');
+      handle.addEventListener('dragstart', (e) => {
+        wrapper.setAttribute('draggable', 'true');
+        wrapper.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', section.id);
+        e.dataTransfer.setData('application/x-section-drag', 'true');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      handle.addEventListener('dragend', () => {
+        wrapper.setAttribute('draggable', 'false');
+        wrapper.classList.remove('dragging');
+        container.querySelectorAll('.section-wrapper').forEach(el => el.classList.remove('drag-over'));
+      });
+
+      const body = document.createElement('div');
+      body.className = 'section-body';
+
+      const header = document.createElement('div');
+      header.className = 'section-header';
+      header.innerHTML = `
+        <span class="section-title">${escapeHtml(section.name)}</span>
+        <button class="section-delete-btn" data-delete-section="${section.id}" title="Remove section">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      `;
+
+      const grid = document.createElement('div');
+      grid.className = 'section-apps-grid';
+      grid.setAttribute('data-section-id', section.id);
+
+      section.apps.forEach(app => {
+        const card = document.createElement('a');
+        card.className = 'app-card';
+        card.href = app.url;
+        card.target = '_blank';
+        card.rel = 'noopener noreferrer';
+        card.setAttribute('data-app-id', app.id);
+        card.setAttribute('draggable', 'true');
+
+        const favicon = getFaviconUrl(app.url);
+        card.innerHTML = `
+          <button class="app-card-delete" data-delete-app="${app.id}" data-section-id="${section.id}" title="Remove">
+            <i class="bi bi-x-lg"></i>
+          </button>
+          ${favicon ? `<img class="app-card-favicon" src="${favicon}" alt="" onerror="this.style.display='none'">` : ''}
+          <span class="app-card-name">${escapeHtml(app.name)}</span>
+        `;
+
+        card.addEventListener('dragstart', (e) => {
+          e.stopPropagation();
+          card.classList.add('dragging');
+          e.dataTransfer.setData('text/plain', app.id);
+          e.dataTransfer.setData('application/x-app-drag', 'true');
+          e.dataTransfer.setData('application/x-source-section', section.id);
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        card.addEventListener('dragend', (e) => {
+          e.stopPropagation();
+          card.classList.remove('dragging');
+          container.querySelectorAll('.app-card').forEach(el => el.classList.remove('drag-over'));
+        });
+
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.dataTransfer.types.includes('application/x-app-drag')) {
+            card.classList.add('drag-over');
+          }
+        });
+
+        card.addEventListener('dragleave', (e) => {
+          e.stopPropagation();
+          card.classList.remove('drag-over');
+        });
+
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          card.classList.remove('drag-over');
+          if (!e.dataTransfer.types.includes('application/x-app-drag')) return;
+
+          const draggedAppId = e.dataTransfer.getData('text/plain');
+          const sourceSectionId = e.dataTransfer.getData('application/x-source-section');
+          const targetAppId = app.id;
+          const targetSectionId = section.id;
+
+          if (draggedAppId === targetAppId) return;
+
+          const sourceSection = config.sections.find(s => s.id === sourceSectionId);
+          const targetSection = config.sections.find(s => s.id === targetSectionId);
+          if (!sourceSection || !targetSection) return;
+
+          const draggedIdx = sourceSection.apps.findIndex(a => a.id === draggedAppId);
+          if (draggedIdx === -1) return;
+          const [draggedApp] = sourceSection.apps.splice(draggedIdx, 1);
+
+          const targetIdx = targetSection.apps.findIndex(a => a.id === targetAppId);
+          targetSection.apps.splice(targetIdx, 0, draggedApp);
+
+          saveConfig();
+          renderSections();
+        });
+
+        grid.appendChild(card);
+      });
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'app-card-add';
+      addBtn.innerHTML = '<i class="bi bi-plus-lg"></i><span>Add App</span>';
+      addBtn.addEventListener('click', () => {
+        addAppTargetSectionId = section.id;
+        els.appName.value = '';
+        els.appUrl.value = '';
+        addAppModal.show();
+      });
+      grid.appendChild(addBtn);
+
+      // Section-level drag-and-drop
+      wrapper.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.types.includes('application/x-section-drag')) {
+          wrapper.classList.add('drag-over');
+        }
+      });
+
+      wrapper.addEventListener('dragleave', (e) => {
+        if (!wrapper.contains(e.relatedTarget)) {
+          wrapper.classList.remove('drag-over');
+        }
+      });
+
+      wrapper.addEventListener('drop', (e) => {
+        e.preventDefault();
+        wrapper.classList.remove('drag-over');
+        if (!e.dataTransfer.types.includes('application/x-section-drag')) return;
+
+        const draggedSectionId = e.dataTransfer.getData('text/plain');
+        const targetSectionId = section.id;
+        if (draggedSectionId === targetSectionId) return;
+
+        const draggedIdx = config.sections.findIndex(s => s.id === draggedSectionId);
+        const targetIdx = config.sections.findIndex(s => s.id === targetSectionId);
+        if (draggedIdx === -1 || targetIdx === -1) return;
+
+        const [draggedSection] = config.sections.splice(draggedIdx, 1);
+        config.sections.splice(targetIdx, 0, draggedSection);
+
+        saveConfig();
+        renderSections();
+      });
+
+      body.appendChild(header);
+      body.appendChild(grid);
+      wrapper.appendChild(handle);
+      wrapper.appendChild(body);
+      container.appendChild(wrapper);
+    });
+  }
+
   // ── UI sync ──
 
   function syncSettingsUI() {
@@ -243,6 +448,103 @@
       deleteModal.hide();
     });
 
+    // ── Section events ──
+
+    els.addSectionBtn.addEventListener('click', () => {
+      els.sectionName.value = '';
+      addSectionModal.show();
+    });
+
+    els.saveSectionBtn.addEventListener('click', () => {
+      const name = els.sectionName.value.trim();
+      if (!name) {
+        els.sectionName.classList.add('is-invalid');
+        return;
+      }
+      els.sectionName.classList.remove('is-invalid');
+
+      config.sections.push({ id: generateId(), name, apps: [] });
+      saveConfig();
+      renderSections();
+      addSectionModal.hide();
+    });
+
+    els.sectionsContainer.addEventListener('click', (e) => {
+      const sectionDeleteBtn = e.target.closest('[data-delete-section]');
+      if (sectionDeleteBtn) {
+        deleteSectionTargetId = sectionDeleteBtn.getAttribute('data-delete-section');
+        deleteSectionModal.show();
+        return;
+      }
+
+      const appDeleteBtn = e.target.closest('[data-delete-app]');
+      if (appDeleteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteAppTargetId = appDeleteBtn.getAttribute('data-delete-app');
+        deleteAppTargetSectionId = appDeleteBtn.getAttribute('data-section-id');
+        deleteAppModal.show();
+        return;
+      }
+    });
+
+    els.confirmDeleteSectionBtn.addEventListener('click', () => {
+      if (deleteSectionTargetId) {
+        config.sections = config.sections.filter(s => s.id !== deleteSectionTargetId);
+        saveConfig();
+        renderSections();
+        deleteSectionTargetId = null;
+      }
+      deleteSectionModal.hide();
+    });
+
+    els.confirmDeleteAppBtn.addEventListener('click', () => {
+      if (deleteAppTargetId && deleteAppTargetSectionId) {
+        const section = config.sections.find(s => s.id === deleteAppTargetSectionId);
+        if (section) {
+          section.apps = section.apps.filter(a => a.id !== deleteAppTargetId);
+          saveConfig();
+          renderSections();
+        }
+        deleteAppTargetId = null;
+        deleteAppTargetSectionId = null;
+      }
+      deleteAppModal.hide();
+    });
+
+    // ── Add App events ──
+
+    els.saveAppBtn.addEventListener('click', () => {
+      const name = els.appName.value.trim();
+      const url = els.appUrl.value.trim();
+
+      if (!name) {
+        els.appName.classList.add('is-invalid');
+        return;
+      }
+      els.appName.classList.remove('is-invalid');
+
+      if (!url) {
+        els.appUrl.classList.add('is-invalid');
+        return;
+      }
+      els.appUrl.classList.remove('is-invalid');
+
+      // Ensure URL has protocol
+      const finalUrl = url.match(/^https?:\/\//) ? url : 'https://' + url;
+
+      const section = config.sections.find(s => s.id === addAppTargetSectionId);
+      if (section) {
+        section.apps.push({ id: generateId(), name, url: finalUrl });
+        saveConfig();
+        renderSections();
+      }
+      addAppTargetSectionId = null;
+      addAppModal.hide();
+    });
+
+    // ── Settings events ──
+
     els.format24.addEventListener('change', () => {
       config.timeFormat = '24';
       saveConfig();
@@ -300,11 +602,13 @@
           timeFormat: imported.timeFormat || '24',
           showSeconds: imported.showSeconds !== undefined ? imported.showSeconds : true,
           showDate: imported.showDate !== undefined ? imported.showDate : true,
-          regionalClocks: imported.regionalClocks || []
+          regionalClocks: imported.regionalClocks || [],
+          sections: imported.sections || []
         };
         saveConfig();
         syncSettingsUI();
         renderRegionalClocks();
+        renderSections();
         settingsModal.hide();
       } catch (err) {
         alert('Invalid configuration file. Please check the format.');
@@ -315,16 +619,18 @@
   }
 
   function resetAll() {
-    if (!confirm('This will remove all regional clocks and reset settings. Continue?')) return;
+    if (!confirm('This will remove all regional clocks, sections, and reset settings. Continue?')) return;
     config = {
       timeFormat: '24',
       showSeconds: true,
       showDate: true,
-      regionalClocks: []
+      regionalClocks: [],
+      sections: []
     };
     saveConfig();
     syncSettingsUI();
     renderRegionalClocks();
+    renderSections();
     settingsModal.hide();
   }
 
@@ -337,6 +643,7 @@
     loadConfig(() => {
       syncSettingsUI();
       renderRegionalClocks();
+      renderSections();
       updateClocks();
       clockInterval = setInterval(updateClocks, 1000);
     });

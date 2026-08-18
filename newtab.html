@@ -11,7 +11,7 @@
 <body>
   <div class="container-fluid h-100">
     <div class="row h-100 align-items-center justify-content-center">
-      <div class="col-lg-8 col-xl-6 text-center">
+      <div class="col-lg-10 col-xl-8 text-center">
 
         <!-- Settings Gear -->
         <div class="settings-btn" id="settingsBtn" title="Settings">
@@ -30,6 +30,14 @@
         <!-- Add Clock Button -->
         <button class="btn btn-add-clock mt-4" id="addClockBtn">
           <i class="bi bi-plus-circle me-2"></i>Add Clock
+        </button>
+
+        <!-- Sections Container -->
+        <div id="sectionsContainer" class="sections-wrapper"></div>
+
+        <!-- Add Section Button -->
+        <button class="btn btn-add-section mt-3" id="addSectionBtn">
+          <i class="bi bi-plus-circle me-2"></i>Add Section
         </button>
 
       </div>
@@ -151,6 +159,96 @@
         <div class="modal-footer border-top border-secondary justify-content-center">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Section Modal -->
+  <div class="modal fade" id="addSectionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark-modal">
+        <div class="modal-header border-bottom border-secondary">
+          <h5 class="modal-title text-white">
+            <i class="bi bi-grid me-2"></i>Add Section
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label text-white">Section Name</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" id="sectionName" placeholder="e.g. Social, Work, Entertainment">
+          </div>
+        </div>
+        <div class="modal-footer border-top border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveSectionBtn">Add Section</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add App Modal -->
+  <div class="modal fade" id="addAppModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark-modal">
+        <div class="modal-header border-bottom border-secondary">
+          <h5 class="modal-title text-white">
+            <i class="bi bi-plus-square me-2"></i>Add Application
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label text-white">Application Name</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" id="appName" placeholder="e.g. YouTube, Gmail, GitHub">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-white">URL</label>
+            <input type="url" class="form-control bg-dark text-white border-secondary" id="appUrl" placeholder="e.g. https://youtube.com">
+          </div>
+        </div>
+        <div class="modal-footer border-top border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveAppBtn">Add App</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Section Confirmation Modal -->
+  <div class="modal fade" id="deleteSectionModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content bg-dark-modal">
+        <div class="modal-header border-bottom border-secondary">
+          <h5 class="modal-title text-white">Delete Section?</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-white text-center">
+          <p>This section and all its apps will be removed.</p>
+        </div>
+        <div class="modal-footer border-top border-secondary justify-content-center">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteSectionBtn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete App Confirmation Modal -->
+  <div class="modal fade" id="deleteAppModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content bg-dark-modal">
+        <div class="modal-header border-bottom border-secondary">
+          <h5 class="modal-title text-white">Delete App?</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-white text-center">
+          <p>This app will be removed permanently.</p>
+        </div>
+        <div class="modal-footer border-top border-secondary justify-content-center">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteAppBtn">Delete</button>
         </div>
       </div>
     </div>

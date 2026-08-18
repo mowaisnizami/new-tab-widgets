@@ -212,6 +212,235 @@ body {
   border-radius: 3px;
 }
 
+/* Sections */
+.sections-wrapper {
+  margin-top: 2.5rem;
+  width: 100%;
+}
+
+.section-wrapper {
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.section-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-height: 40px;
+  cursor: grab;
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 0.9rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  user-select: none;
+}
+
+.section-drag-handle:hover {
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.section-drag-handle:active {
+  cursor: grabbing;
+}
+
+.section-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.section-title {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.section-delete-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.section-wrapper:hover .section-delete-btn {
+  opacity: 1;
+}
+
+.section-delete-btn:hover {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.section-apps-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* App Cards */
+.app-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  min-width: 140px;
+  max-width: 180px;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.app-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  text-decoration: none;
+  color: inherit;
+}
+
+.app-card-favicon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px;
+}
+
+.app-card-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.app-card-delete {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0;
+  z-index: 2;
+}
+
+.app-card:hover .app-card-delete {
+  opacity: 1;
+}
+
+.app-card-delete:hover {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+}
+
+/* Add App Card (inside section) */
+.app-card-add {
+  background: none;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  min-width: 140px;
+  max-width: 180px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.3s ease;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.app-card-add:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.app-card-add i {
+  font-size: 1.2rem;
+}
+
+.app-card-add span {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Add Section Button */
+.btn-add-section {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.btn-add-section:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Drag & Drop States */
+.section-wrapper.dragging {
+  opacity: 0.4;
+}
+
+.section-wrapper.drag-over {
+  border-top: 2px solid #6c63ff;
+}
+
+.app-card.dragging {
+  opacity: 0.4;
+}
+
+.app-card.drag-over {
+  border-color: #6c63ff;
+  box-shadow: 0 0 0 1px rgba(108, 99, 255, 0.3);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .clock-time {
@@ -233,6 +462,20 @@ body {
     top: 1rem;
     right: 1rem;
   }
+
+  .section-apps-grid {
+    gap: 0.75rem;
+  }
+
+  .app-card {
+    min-width: 120px;
+    padding: 1rem 1.25rem;
+  }
+
+  .app-card-add {
+    min-width: 120px;
+    padding: 1rem 1.25rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -241,6 +484,20 @@ body {
   }
 
   .container-fluid {
+    padding: 1rem;
+  }
+
+  .section-drag-handle {
+    display: none;
+  }
+
+  .app-card {
+    min-width: 110px;
+    padding: 1rem;
+  }
+
+  .app-card-add {
+    min-width: 110px;
     padding: 1rem;
   }
 }
