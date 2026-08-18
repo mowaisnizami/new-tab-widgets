@@ -198,6 +198,145 @@ body {
   height: 1.4em;
 }
 
+/* Modal sub-links */
+.sub-links-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.sub-link-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sub-link-row .form-control {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+}
+
+/* Sub-link icon picker */
+.sub-link-icon-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sub-link-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Body-appended icon picker menu */
+.sub-link-icon-menu-body {
+  position: fixed;
+  z-index: 9999;
+  min-width: 180px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0.3rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+}
+
+.sub-link-icon-option-body {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.35rem 0.6rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  text-align: left;
+}
+
+.sub-link-icon-option-body:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.sub-link-icon-option-body.active {
+  background: rgba(108, 99, 255, 0.3);
+  color: #ffffff;
+}
+
+.sub-link-icon-option-body i {
+  font-size: 0.9rem;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Custom icons in settings */
+.custom-icons-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-height: 28px;
+}
+
+.custom-icon-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+}
+
+.custom-icon-tag:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.custom-icon-tag i {
+  font-size: 0.85rem;
+}
+
+.custom-icon-remove {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0 2px;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+}
+
+.custom-icon-remove:hover {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -330,6 +469,29 @@ body {
   letter-spacing: 2px;
 }
 
+.section-title:hover {
+  opacity: 0.8;
+}
+
+.section-title-input {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--section-accent, rgba(255, 255, 255, 0.8));
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 2px 8px;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.2s ease;
+}
+
+.section-title-input:focus {
+  border-color: var(--section-accent, #6c63ff);
+}
+
 .section-delete-btn {
   background: none;
   border: none;
@@ -415,6 +577,44 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+/* Sub-link icons row on app card */
+.app-card-sublinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 0.2rem;
+}
+
+.app-card-sublink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.app-card-sublink:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.15);
+}
+
+.app-card-sublink-icon {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1;
+}
+
+.app-card-sublink:hover .app-card-sublink-icon {
+  color: #ffffff;
 }
 
 .app-card-actions {

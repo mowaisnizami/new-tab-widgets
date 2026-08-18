@@ -21,7 +21,8 @@
     showSeconds: true,
     showDate: true,
     regionalClocks: [],
-    sections: []
+    sections: [],
+    customIcons: []
   };
 
   let clockInterval = null;
@@ -49,6 +50,8 @@
     appName: document.getElementById('appName'),
     appUrl: document.getElementById('appUrl'),
     saveAppBtn: document.getElementById('saveAppBtn'),
+    subLinksContainer: document.getElementById('subLinksContainer'),
+    addSubLinkBtn: document.getElementById('addSubLinkBtn'),
     format24: document.getElementById('format24'),
     format12: document.getElementById('format12'),
     showSeconds: document.getElementById('showSeconds'),
@@ -60,6 +63,14 @@
     confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
     confirmDeleteSectionBtn: document.getElementById('confirmDeleteSectionBtn'),
     confirmDeleteAppBtn: document.getElementById('confirmDeleteAppBtn'),
+    customIconInput: document.getElementById('customIconInput'),
+    addCustomIconBtn: document.getElementById('addCustomIconBtn'),
+    customIconsList: document.getElementById('customIconsList'),
+    appIconPickerBtn: document.getElementById('appIconPickerBtn'),
+    appIconPreview: document.getElementById('appIconPreview'),
+    appIconLabel: document.getElementById('appIconLabel'),
+    appIconValue: document.getElementById('appIconValue'),
+    clearAppIconBtn: document.getElementById('clearAppIconBtn'),
   };
 
   const addClockModal = new bootstrap.Modal(document.getElementById('addClockModal'));
@@ -69,6 +80,10 @@
   const addAppModal = new bootstrap.Modal(document.getElementById('addAppModal'));
   const deleteSectionModal = new bootstrap.Modal(document.getElementById('deleteSectionModal'));
   const deleteAppModal = new bootstrap.Modal(document.getElementById('deleteAppModal'));
+
+  document.getElementById('addAppModal').addEventListener('hidden.bs.modal', () => {
+    closeIconPicker();
+  });
 
   // ── Config persistence ──
 
@@ -206,8 +221,12 @@
 
   function getFaviconUrl(url) {
     try {
-      const domain = new URL(url).hostname;
-      return `https://icon.horse/icon/${domain}`;
+      const hostname = new URL(url).hostname;
+      // Skip private/local IPs — external services can't reach them
+      if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.|localhost|::1|100\.64\.|100\.\d{1,2}\.)/.test(hostname)) {
+        return '';
+      }
+      return `https://icon.horse/icon/${hostname}`;
     } catch {
       return '';
     }
@@ -249,12 +268,41 @@
 
       const header = document.createElement('div');
       header.className = 'section-header';
-      header.innerHTML = `
-        <span class="section-title">${escapeHtml(section.name)}</span>
-        <button class="section-delete-btn" data-delete-section="${section.id}" title="Remove section">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      `;
+      const titleEl = document.createElement('span');
+      titleEl.className = 'section-title';
+      titleEl.textContent = section.name;
+      titleEl.title = 'Click to rename';
+      titleEl.style.cursor = 'pointer';
+      titleEl.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'section-title-input';
+        input.value = section.name;
+        titleEl.replaceWith(input);
+        input.focus();
+        input.select();
+        const save = () => {
+          const newName = input.value.trim();
+          if (newName && newName !== section.name) {
+            section.name = newName;
+            saveConfig();
+          }
+          renderSections();
+        };
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); save(); }
+          if (e.key === 'Escape') { renderSections(); }
+        });
+      });
+      header.appendChild(titleEl);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'section-delete-btn';
+      deleteBtn.setAttribute('data-delete-section', section.id);
+      deleteBtn.title = 'Remove section';
+      deleteBtn.innerHTML = '<i class="bi bi-x-lg"></i>';
+      header.appendChild(deleteBtn);
 
       const grid = document.createElement('div');
       grid.className = 'section-apps-grid';
@@ -271,6 +319,23 @@
 
         const favicon = getFaviconUrl(app.url);
         const fallbackInitial = app.name.charAt(0).toUpperCase();
+        const appIconClass = app.appIcon || '';
+        const subLinks = app.subLinks || [];
+        const subLinksHtml = subLinks.length > 0 ? `
+          <div class="app-card-sublinks">
+            ${subLinks.map(sl => {
+              const iconClass = sl.icon || 'bi-globe';
+              return `<a class="app-card-sublink" href="${escapeHtml(sl.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(sl.name)}" onclick="event.stopPropagation()">
+                <i class="bi ${escapeHtml(iconClass)} app-card-sublink-icon"></i>
+              </a>`;
+            }).join('')}
+          </div>
+        ` : '';
+        const mainIconHtml = appIconClass
+          ? `<div class="app-card-favicon-fallback"><i class="bi ${escapeHtml(appIconClass)}" style="font-size:1.2rem;"></i></div>`
+          : favicon
+            ? `<img class="app-card-favicon" src="${favicon}" alt="" onerror="this.outerHTML='<div class=\\'app-card-favicon-fallback\\'>${escapeHtml(fallbackInitial)}</div>'">`
+            : `<div class="app-card-favicon-fallback">${escapeHtml(fallbackInitial)}</div>`;
         card.innerHTML = `
           <div class="app-card-actions">
             <button class="app-card-edit" data-edit-app="${app.id}" data-section-id="${section.id}" title="Edit">
@@ -280,8 +345,9 @@
               <i class="bi bi-x-lg"></i>
             </button>
           </div>
-          ${favicon ? `<img class="app-card-favicon" src="${favicon}" alt="" onerror="this.outerHTML='<div class=\\'app-card-favicon-fallback\\'>${escapeHtml(fallbackInitial)}</div>'">` : `<div class="app-card-favicon-fallback">${escapeHtml(fallbackInitial)}</div>`}
+          ${mainIconHtml}
           <span class="app-card-name">${escapeHtml(app.name)}</span>
+          ${subLinksHtml}
         `;
 
         card.addEventListener('dragstart', (e) => {
@@ -352,6 +418,13 @@
         editAppTargetSectionId = null;
         els.appName.value = '';
         els.appUrl.value = '';
+        modalSubLinks = [];
+        modalAppIcon = '';
+        els.appIconPreview.className = 'bi bi-globe';
+        els.appIconLabel.textContent = 'Auto (from URL)';
+        els.appIconValue.value = '';
+        els.clearAppIconBtn.style.display = 'none';
+        renderSubLinksInModal();
 
         const modalTitle = document.querySelector('#addAppModal .modal-title');
         const modalBtn = document.getElementById('saveAppBtn');
@@ -412,12 +485,214 @@
     els.showDate.checked = config.showDate;
   }
 
+  // ── Sub-links in modal ──
+
+  const ICON_OPTIONS = [
+    { icon: 'bi-globe', label: 'Globe' },
+    { icon: 'bi-link-45deg', label: 'Link' },
+    { icon: 'bi-youtube', label: 'YouTube' },
+    { icon: 'bi-envelope-fill', label: 'Email' },
+    { icon: 'bi-github', label: 'GitHub' },
+    { icon: 'bi-twitter-x', label: 'X / Twitter' },
+    { icon: 'bi-facebook', label: 'Facebook' },
+    { icon: 'bi-instagram', label: 'Instagram' },
+    { icon: 'bi-tiktok', label: 'TikTok' },
+    { icon: 'bi-reddit', label: 'Reddit' },
+    { icon: 'bi-chat-dots-fill', label: 'Chat' },
+    { icon: 'bi-slack', label: 'Slack' },
+    { icon: 'bi-discord', label: 'Discord' },
+    { icon: 'bi-music-note-beamed', label: 'Music' },
+    { icon: 'bi-play-circle-fill', label: 'Video' },
+    { icon: 'bi-cart-fill', label: 'Cart' },
+    { icon: 'bi-search', label: 'Search' },
+    { icon: 'bi-book-fill', label: 'Book' },
+    { icon: 'bi-camera-fill', label: 'Camera' },
+    { icon: 'bi-mic-fill', label: 'Mic' },
+    { icon: 'bi-calendar-event-fill', label: 'Calendar' },
+    { icon: 'bi-bell-fill', label: 'Bell' },
+    { icon: 'bi-cloud-fill', label: 'Cloud' },
+    { icon: 'bi-code-slash', label: 'Code' },
+    { icon: 'bi-terminal-fill', label: 'Terminal' },
+    { icon: 'bi-file-earmark-text-fill', label: 'Document' },
+    { icon: 'bi-folder-fill', label: 'Folder' },
+    { icon: 'bi-image-fill', label: 'Image' },
+    { icon: 'bi-bookmark-fill', label: 'Bookmark' },
+    { icon: 'bi-box-arrow-up-right', label: 'External' },
+    { icon: 'bi-star-fill', label: 'Star' },
+    { icon: 'bi-heart-fill', label: 'Heart' },
+    { icon: 'bi-rocket-fill', label: 'Rocket' },
+    { icon: 'bi-fire', label: 'Trending' },
+    { icon: 'bi-graduation-cap-fill', label: 'Education' },
+    { icon: 'bi-briefcase-fill', label: 'Work' },
+    { icon: 'bi-gamepad', label: 'Gaming' },
+    { icon: 'bi-newspaper', label: 'News' },
+    { icon: 'bi-credit-card-fill', label: 'Finance' },
+    { icon: 'bi-tools', label: 'Tools' },
+  ];
+
+  let modalSubLinks = [];
+  let modalAppIcon = '';
+  let activeIconPicker = null;
+
+  function getAllIconOptions() {
+    const custom = (config.customIcons || []).map(icon => ({
+      icon,
+      label: icon.replace(/^bi-/, '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+      custom: true
+    }));
+    return [...ICON_OPTIONS, ...custom];
+  }
+
+  function renderCustomIcons() {
+    const list = els.customIconsList;
+    list.innerHTML = '';
+    const icons = config.customIcons || [];
+
+    if (icons.length === 0) {
+      list.innerHTML = '<div class="text-white-50" style="font-size:0.75rem;">No custom icons added yet.</div>';
+      return;
+    }
+
+    icons.forEach(icon => {
+      const tag = document.createElement('span');
+      tag.className = 'custom-icon-tag';
+      tag.innerHTML = `<i class="bi ${icon}"></i><span>${icon}</span><button type="button" class="custom-icon-remove" data-icon="${icon}"><i class="bi bi-x"></i></button>`;
+      list.appendChild(tag);
+    });
+
+    list.querySelectorAll('.custom-icon-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const iconClass = btn.getAttribute('data-icon');
+        config.customIcons = config.customIcons.filter(i => i !== iconClass);
+        saveConfig();
+        renderCustomIcons();
+      });
+    });
+  }
+
+  function closeIconPicker() {
+    if (activeIconPicker) {
+      activeIconPicker.remove();
+      activeIconPicker = null;
+    }
+  }
+
+  function renderSubLinksInModal() {
+    const container = els.subLinksContainer;
+    container.innerHTML = '';
+
+    modalSubLinks.forEach((sl, i) => {
+      const row = document.createElement('div');
+      row.className = 'sub-link-row';
+
+      const selectedIcon = sl.icon || 'bi-globe';
+
+      row.innerHTML = `
+        <button type="button" class="btn btn-sm sub-link-icon-btn" data-picker-index="${i}" title="Choose icon">
+          <i class="bi ${selectedIcon}"></i>
+        </button>
+        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary sub-link-name" placeholder="Label" value="${escapeHtml(sl.name)}">
+        <input type="url" class="form-control form-control-sm bg-dark text-white border-secondary sub-link-url" placeholder="https://..." value="${escapeHtml(sl.url)}">
+        <button type="button" class="btn btn-sm btn-outline-danger sub-link-remove" title="Remove"><i class="bi bi-x"></i></button>
+      `;
+
+      // Icon picker — opens a floating panel appended to body
+      row.querySelector('.sub-link-icon-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeIconPicker();
+
+        const btn = e.currentTarget;
+        const rect = btn.getBoundingClientRect();
+
+        const menu = document.createElement('div');
+        menu.className = 'sub-link-icon-menu-body';
+
+        getAllIconOptions().forEach(opt => {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'sub-link-icon-option-body' + (opt.icon === selectedIcon ? ' active' : '');
+          item.innerHTML = `<i class="bi ${opt.icon}"></i><span>${opt.label}</span>`;
+          item.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            modalSubLinks[i].icon = opt.icon;
+            closeIconPicker();
+            renderSubLinksInModal();
+          });
+          menu.appendChild(item);
+        });
+
+        document.body.appendChild(menu);
+
+        // Position below the button, clamped to viewport
+        let top = rect.bottom + 4;
+        let left = rect.left;
+        if (top + 260 > window.innerHeight) top = rect.top - 264;
+        if (left + 190 > window.innerWidth) left = window.innerWidth - 196;
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+
+        activeIconPicker = menu;
+      });
+
+      row.querySelector('.sub-link-name').addEventListener('input', (e) => {
+        modalSubLinks[i].name = e.target.value;
+      });
+
+      row.querySelector('.sub-link-url').addEventListener('input', (e) => {
+        modalSubLinks[i].url = e.target.value;
+      });
+
+      row.querySelector('.sub-link-remove').addEventListener('click', () => {
+        modalSubLinks.splice(i, 1);
+        renderSubLinksInModal();
+      });
+
+      container.appendChild(row);
+    });
+  }
+
+  function addSubLinkToModal(name = '', url = '', icon = 'bi-globe') {
+    modalSubLinks.push({ id: generateId(), name, url, icon });
+    renderSubLinksInModal();
+  }
+
   // ── Event handlers ──
 
   function setupEvents() {
+    document.addEventListener('click', (e) => {
+      if (activeIconPicker && !activeIconPicker.contains(e.target) && !e.target.closest('.sub-link-icon-btn')) {
+        closeIconPicker();
+      }
+    });
+
     els.settingsBtn.addEventListener('click', () => {
       syncSettingsUI();
+      renderCustomIcons();
       settingsModal.show();
+    });
+
+    els.addCustomIconBtn.addEventListener('click', () => {
+      const val = els.customIconInput.value.trim().toLowerCase();
+      if (!val) return;
+      const iconClass = val.startsWith('bi-') ? val : 'bi-' + val;
+      if (config.customIcons.includes(iconClass)) {
+        els.customIconInput.classList.add('is-invalid');
+        return;
+      }
+      els.customIconInput.classList.remove('is-invalid');
+      config.customIcons.push(iconClass);
+      saveConfig();
+      els.customIconInput.value = '';
+      renderCustomIcons();
+    });
+
+    els.customIconInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        els.addCustomIconBtn.click();
+      }
     });
 
     els.addClockBtn.addEventListener('click', () => {
@@ -513,6 +788,25 @@
         els.appName.value = app.name;
         els.appUrl.value = app.url;
 
+        // Pre-fill app icon
+        modalAppIcon = app.appIcon || '';
+        if (modalAppIcon) {
+          els.appIconPreview.className = `bi ${modalAppIcon}`;
+          const matchedOpt = getAllIconOptions().find(o => o.icon === modalAppIcon);
+          els.appIconLabel.textContent = matchedOpt ? matchedOpt.label : modalAppIcon;
+          els.appIconValue.value = modalAppIcon;
+          els.clearAppIconBtn.style.display = '';
+        } else {
+          els.appIconPreview.className = 'bi bi-globe';
+          els.appIconLabel.textContent = 'Auto (from URL)';
+          els.appIconValue.value = '';
+          els.clearAppIconBtn.style.display = 'none';
+        }
+
+        // Pre-fill sub-links
+        modalSubLinks = (app.subLinks || []).map(sl => ({ ...sl }));
+        renderSubLinksInModal();
+
         const modalTitle = document.querySelector('#addAppModal .modal-title');
         const modalBtn = document.getElementById('saveAppBtn');
         modalTitle.innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Application';
@@ -558,6 +852,57 @@
 
     // ── Add / Edit App events ──
 
+    els.addSubLinkBtn.addEventListener('click', () => {
+      addSubLinkToModal();
+    });
+
+    // App icon picker
+    els.appIconPickerBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeIconPicker();
+
+      const btn = e.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      const menu = document.createElement('div');
+      menu.className = 'sub-link-icon-menu-body';
+
+      getAllIconOptions().forEach(opt => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'sub-link-icon-option-body' + (opt.icon === modalAppIcon ? ' active' : '');
+        item.innerHTML = `<i class="bi ${opt.icon}"></i><span>${opt.label}</span>`;
+        item.addEventListener('click', (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          modalAppIcon = opt.icon;
+          els.appIconPreview.className = `bi ${opt.icon}`;
+          els.appIconLabel.textContent = opt.label;
+          els.appIconValue.value = opt.icon;
+          els.clearAppIconBtn.style.display = '';
+          closeIconPicker();
+        });
+        menu.appendChild(item);
+      });
+
+      document.body.appendChild(menu);
+      let top = rect.bottom + 4;
+      let left = rect.left;
+      if (top + 260 > window.innerHeight) top = rect.top - 264;
+      if (left + 190 > window.innerWidth) left = window.innerWidth - 196;
+      menu.style.top = top + 'px';
+      menu.style.left = left + 'px';
+      activeIconPicker = menu;
+    });
+
+    els.clearAppIconBtn.addEventListener('click', () => {
+      modalAppIcon = '';
+      els.appIconPreview.className = 'bi bi-globe';
+      els.appIconLabel.textContent = 'Auto (from URL)';
+      els.appIconValue.value = '';
+      els.clearAppIconBtn.style.display = 'none';
+    });
+
     els.saveAppBtn.addEventListener('click', () => {
       const name = els.appName.value.trim();
       const url = els.appUrl.value.trim();
@@ -577,6 +922,16 @@
       // Ensure URL has protocol
       const finalUrl = url.match(/^https?:\/\//) ? url : 'https://' + url;
 
+      // Collect sub-links from modal, ensuring URLs have protocol
+      const subLinks = modalSubLinks
+        .filter(sl => sl.name.trim() && sl.url.trim())
+        .map(sl => ({
+          id: sl.id || generateId(),
+          name: sl.name.trim(),
+          url: sl.url.trim().match(/^https?:\/\//) ? sl.url.trim() : 'https://' + sl.url.trim(),
+          icon: sl.icon || ''
+        }));
+
       if (editAppTargetId && editAppTargetSectionId) {
         // Edit mode
         const section = config.sections.find(s => s.id === editAppTargetSectionId);
@@ -585,6 +940,8 @@
           if (app) {
             app.name = name;
             app.url = finalUrl;
+            app.subLinks = subLinks;
+            app.appIcon = modalAppIcon;
           }
         }
         editAppTargetId = null;
@@ -593,11 +950,13 @@
         // Add mode
         const section = config.sections.find(s => s.id === addAppTargetSectionId);
         if (section) {
-          section.apps.push({ id: generateId(), name, url: finalUrl });
+          section.apps.push({ id: generateId(), name, url: finalUrl, subLinks, appIcon: modalAppIcon });
         }
         addAppTargetSectionId = null;
       }
 
+      modalSubLinks = [];
+      modalAppIcon = '';
       saveConfig();
       renderSections();
       addAppModal.hide();
@@ -663,7 +1022,8 @@
           showSeconds: imported.showSeconds !== undefined ? imported.showSeconds : true,
           showDate: imported.showDate !== undefined ? imported.showDate : true,
           regionalClocks: imported.regionalClocks || [],
-          sections: imported.sections || []
+          sections: imported.sections || [],
+          customIcons: imported.customIcons || []
         };
         saveConfig();
         syncSettingsUI();
@@ -685,7 +1045,8 @@
       showSeconds: true,
       showDate: true,
       regionalClocks: [],
-      sections: []
+      sections: [],
+      customIcons: []
     };
     saveConfig();
     syncSettingsUI();
