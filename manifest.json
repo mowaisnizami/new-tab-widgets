@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "New Tab Widgets - Time & Dashboard",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Replace your new tab with a beautiful dashboard featuring live clocks, world time zones, and customizable widgets.",
   "chrome_url_overrides": {
     "newtab": "newtab.html"

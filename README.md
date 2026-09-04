@@ -1,66 +1,68 @@
-# New Tab Widgets - Time & Dashboard
+# New Tab Widgets
 
-Replace your Chrome new tab with a beautiful dashboard featuring live clocks, world time zones, and customizable widgets.
+A privacy-first Chrome new-tab dashboard for clocks, grouped shortcuts and portable workspace settings. It is deliberately dependency-light, requests only local storage, and ships every runtime asset inside the extension.
+
+![New Tab Widgets dashboard](docs/dashboard.png)
+
+## Why this project
+
+New Tab Widgets turns an otherwise empty browser surface into a useful start page without an account, tracking script or hosted backend. It demonstrates browser-extension architecture, local-first state, CSP-safe packaging and a responsive interactive UI.
 
 ## Features
 
-- **Primary Clock** — Large, centered clock with real-time updates
-- **Regional Clocks** — Add multiple world clocks for any timezone (40+ supported)
-- **Customizable Settings** — Toggle 12/24-hour format, show/hide seconds and date
-- **Export & Import** — Backup your configuration as JSON and restore it on another profile
-- **Dark Theme** — Modern glassmorphism design with smooth animations
-- **Responsive** — Looks great on any screen size
+- Primary local clock with 12/24-hour, seconds and date preferences
+- Named regional clocks across 40+ IANA time zones
+- Homarr-style shortcut sections with nested links and inline editing
+- Built-in and user-supplied shortcut icons
+- JSON configuration backup and restore
+- Responsive glass UI with local Bootstrap and Bootstrap Icons assets
+- Zero analytics and zero remote runtime requests
 
-## Installation
+## Install from source
 
-### From Source
+1. Download or clone this repository.
+2. Open `chrome://extensions` in Chrome or a Chromium browser.
+3. Enable **Developer mode**.
+4. Select **Load unpacked** and choose this repository folder.
+5. Open a new tab.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/mowaisnizami/new-tab-widgets.git
-   ```
+## Use
 
-2. Open Chrome and navigate to `chrome://extensions`
+- Select **Add clock** to track another time zone.
+- Select **Add section** to create a shortcut group, then add apps or nested links.
+- Open **Settings** to change clock formatting, export a backup, import one, or reset the dashboard.
+- Hover a clock, section or shortcut to expose its edit and remove actions.
 
-3. Enable **Developer mode** (top-right toggle)
+## Privacy and permissions
 
-4. Click **Load unpacked** and select the `tab-dashboard` folder
+The only requested permission is `storage`, used to keep configuration in the browser profile. There are no content scripts, host permissions, analytics or remote code. See [PRIVACY.md](PRIVACY.md).
 
-5. Open a new tab — your new dashboard is ready
+## Verify a release
 
-### Configuration
+Node.js 20 or newer is sufficient; there are no package dependencies.
 
-Click the gear icon (top-right) to open settings:
-
-| Setting | Description |
-|---------|-------------|
-| Time Format | Switch between 24-hour and 12-hour (AM/PM) |
-| Show Seconds | Toggle seconds display on all clocks |
-| Show Date | Toggle date display below each clock |
-| Export Config | Download your settings as a JSON file |
-| Import Config | Restore settings from a previously exported file |
-| Reset | Clear all settings and regional clocks |
-
-## Project Structure
-
-```
-tab-dashboard/
-├── manifest.json      # Chrome extension manifest (V3)
-├── newtab.html        # Main new tab page
-├── newtab.js          # Clock logic, config management, import/export
-├── styles.css         # Dark theme styles
-└── icons/
-    ├── icon16.png
-    ├── icon48.png
-    └── icon128.png
+```bash
+npm test
+npm run check:js
 ```
 
-## Tech Stack
+The automated check validates Manifest V3, the minimal permission set, all packaged assets, local-only HTML references and JavaScript syntax. GitHub Actions runs both checks on every push and pull request.
 
-- HTML5 / CSS3 / Vanilla JavaScript
-- Bootstrap 5.3
-- Bootstrap Icons
-- Chrome Storage API
+## Project structure
+
+```text
+manifest.json          Manifest V3 definition and minimal permission
+newtab.html            Accessible dashboard and modal structure
+newtab.js              State, clocks, sections, shortcuts, import/export
+styles.css             Responsive glass interface
+lib/                   Locally bundled Bootstrap runtime assets
+icons/                 Extension icons
+scripts/               Dependency-free release verification
+```
+
+## Release history
+
+See [CHANGELOG.md](CHANGELOG.md). The current release is `1.1.0`.
 
 ## License
 
